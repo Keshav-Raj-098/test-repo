@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Job {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+
+  uploadedJdUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  screeningParameters ScreeningParameters?
+  scores              Scores[]
+}
+
+model ScreeningParameters {
+  id         String   @id @default(uuid())
+  parameters Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  jobId String @unique
+  job   Job    @relation(fields: [jobId], references: [id])
+}
+
+model Scores {
+  id String @id @default(uuid())
+
+  fileName   String?
+  resumeText String?
+
+  // Lifecycle of a single resume as it moves through background scoring.
+  // status: pending | processing | completed | failed
+  // stage:  queued | scoring | scored
+  status String @default("pending")
+  stage  String @default("queued")
+  error  String?
+
+  // Populated by the scorer once processing completes.
+  candidateInfo Json?
+  score         Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id])
+}
