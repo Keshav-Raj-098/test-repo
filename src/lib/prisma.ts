@@ -1,10 +1,12 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaNeon } from "@prisma/adapter-neon";
 
 // In Prisma 7 the connection is supplied at runtime through a driver adapter.
-// We point the better-sqlite3 adapter at the local file-based SQLite database.
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./dev.db",
+// The Neon adapter talks to Postgres over HTTP/WebSocket, which works in
+// serverless environments (e.g. Vercel) where a long-lived TCP pool can't be
+// shared across invocations.
+const adapter = new PrismaNeon({
+  connectionString: process.env.DATABASE_URL,
 });
 
 // Reuse a single PrismaClient across hot reloads in development to avoid
